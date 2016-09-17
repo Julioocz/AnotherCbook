@@ -74,6 +74,26 @@ class ContactView:
             print ('{}. {}'.format(num_entry, entry))
             num_entry += 1
 
+    def menu_interaction(self, option):
+
+        if option == 0:
+            print ('You selected Add a new contact', end='\n\n')
+
+        elif option == 1:
+            print ('You selected Display all contacts', end='\n\n')
+
+        elif option == 2:
+            print ('You selected Delete an existing contact', end='\n\n')
+
+        elif option == 3:
+            print ('You selected Update an existing contact', end='\n\n')
+
+        elif option == 4:
+            print ('You selected Search an existing contact', end='\n\n')
+
+    def menu_out_of_bound(self):
+        print('I did not understand what you selected, could you please try again?')
+
     def contact_notFound(self):
         print('The contact that you are looking for is not in the contact book')
 
@@ -119,32 +139,21 @@ class ContactController:
         self.view.presentation()
 
     def start(self):
-    	status = True
-    	
-    	while True:
+        status = True
+
+        options = [self.add, self.display, self.delete, self.update, self.search, self.exit]
+
+        while True:
             self.view.menu()
             option = int(input('Select an option: ')) - 1
-            
-            if option == 0:
-            	print ('You selected Add a new contact', end='\n\n')
-            	self.add()
-            elif option == 1:
-            	print ('You selected Display all contacts', end='\n\n')
-            	self.display()
-            elif option == 2:
-            	print ('You selected Delete an existing contact', end='\n\n')
-            	self.delete()
-            elif option == 3:
-            	print ('You selected Update an existing contact', end='\n\n')
-            	self.update()
-            elif option == 4:
-            	print ('You selected Search an existing contact', end='\n\n')
-            	self.search()
-            elif option == 5:
-            	break
+
+            if option >= 0 and option <= 5:
+                self.view.menu_interaction(option)
+                options[option]()
 
             else:
-            	print('I did not understand what you selected, could you please try again?')
+                self.view.menu_out_of_bound()
+
 
     def add(self):
         self.view.ask_contactInfo()
@@ -182,7 +191,7 @@ class ContactController:
             self.model.update_contact(contact_name, new_phone)
         else:
             print('The contact is not in your contactbook')
-	
+    
     def search(self):
         self.view.ask_contactname()
         contact_name = input('Name: ')
@@ -192,6 +201,9 @@ class ContactController:
             self.view.contactView(contact)
 
         else:
-        	print('The contact is not in your contactbook')
+            print('The contact is not in your contactbook')
+
+    def exit(self):
+        return quit()
 
         
