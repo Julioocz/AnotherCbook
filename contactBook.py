@@ -1,5 +1,5 @@
 import json
-import inspect
+
 
 class ContactModel:
     def __init__(self, json_file):
@@ -12,11 +12,10 @@ class ContactModel:
 
     def _jsonDump(self, json_new):
         with open(self.json_file, 'w') as json_out:
-            json.dump(json_new, json_out,indent = 3)
+            json.dump(json_new, json_out, indent=3)
 
-
-    def new_contact(self, name, phone = None):
-        contact_new = {"name":name, "phone": phone}
+    def new_contact(self, name, phone=None):
+        contact_new = {"name": name, "phone": phone}
         self.contacts.append(contact_new)
         self.save_contacts()
 
@@ -37,7 +36,7 @@ class ContactModel:
 
     def verify_contact(self, name):
         x = self.search_contact(name)
-        if x != False:
+        if x is not False:
             return True
         return x
 
@@ -67,35 +66,35 @@ class ContactView:
         menu.append("Search an existing contact by name")
         menu.append("Exit")
 
-        print('\nMENU' , end='\n\n')
+        print('\nMENU', end='\n\n')
 
         num_entry = 1
         for entry in menu:
-            print ('{}. {}'.format(num_entry, entry))
+            print('{}. {}'.format(num_entry, entry))
             num_entry += 1
 
     def menu_interaction(self, option):
 
         if option == 0:
-            print ('You selected Add a new contact', end='\n\n')
+            print('You selected Add a new contact', end='\n\n')
 
         elif option == 1:
-            print ('You selected Display all contacts', end='\n\n')
+            print('You selected Display all contacts', end='\n\n')
 
         elif option == 2:
-            print ('You selected Delete an existing contact', end='\n\n')
+            print('You selected Delete an existing contact', end='\n\n')
 
         elif option == 3:
-            print ('You selected Update an existing contact', end='\n\n')
+            print('You selected Update an existing contact', end='\n\n')
 
         elif option == 4:
-            print ('You selected Search an existing contact', end='\n\n')
+            print('You selected Search an existing contact', end='\n\n')
 
     def menu_out_of_bound(self):
-        print('I did not understand what you selected, could you please try again?')
+        print('I did not understand what you selected, try again!')
 
     def contact_notFound(self):
-        print('The contact that you are looking for is not in the contact book')
+        print('The contact that you are looking or is not in the contact book')
 
     def contactList(self, contacts):
         print('List of contacts: \n')
@@ -103,7 +102,9 @@ class ContactView:
             self.contactView(contact)
 
     def contactView(self, contact):
-        print('- Name: {} -- Phone: {}'.format(contact['name'], contact['phone']))
+        name = contact['name']
+        phone = contact['phone']
+        print('- Name: {} -- Phone: {}'.format(name, phone))
 
     def contact_deleted(self, name):
         print('The contact named {} has been deleted'.format(name.title()))
@@ -128,6 +129,9 @@ class ContactView:
     def error(self):
         print('UPS.. something went bad')
 
+    def input_info(self, message):
+        return input(message)
+
 
 class ContactController:
 
@@ -139,26 +143,24 @@ class ContactController:
         self.view.presentation()
 
     def start(self):
-        status = True
-
-        options = [self.add, self.display, self.delete, self.update, self.search, self.exit]
+        options = [self.add, self.display, self.delete,
+                  self.update, self.search, self.exit]
 
         while True:
             self.view.menu()
-            option = int(input('Select an option: ')) - 1
+            option = int(self.view.input_info('Select an option: ')) - 1
 
-            if option >= 0 and option <= 5:
+            if 0 <= option <= 5:
                 self.view.menu_interaction(option)
                 options[option]()
 
             else:
                 self.view.menu_out_of_bound()
 
-
     def add(self):
         self.view.ask_contactInfo()
-        new_name = input('Name: ')
-        new_phone = input('Phone number: ')
+        new_name = self.view.input_info('Name: ')
+        new_phone = self.view.input_info('Phone number: ')
 
         try:
             self.model.new_contact(new_name, new_phone)
@@ -168,7 +170,7 @@ class ContactController:
 
     def delete(self):
         self.view.ask_contactname()
-        name_delete = input('Name: ')
+        name_delete = self.view.input_info('Name: ')
 
         try:
             self.model.delete_contact(name_delete)
@@ -183,19 +185,19 @@ class ContactController:
 
     def update(self):
         self.view.ask_contactname()
-        contact_name = input('Name: ')
+        contact_name = self.view.input_info('Name: ')
 
         if self.model.verify_contact(contact_name):
             print('Insert the new contact informations')
-            new_phone = input('New phone: ')
+            new_phone = self.view.input_info('New phone: ')
             self.model.update_contact(contact_name, new_phone)
         else:
             print('The contact is not in your contactbook')
-    
+
     def search(self):
         self.view.ask_contactname()
-        contact_name = input('Name: ')
-        
+        contact_name = self.view.input_info('Name: ')
+
         if self.model.verify_contact(contact_name):
             contact = self.model.search_contact(contact_name)[0]
             self.view.contactView(contact)
@@ -205,5 +207,3 @@ class ContactController:
 
     def exit(self):
         return quit()
-
-        
