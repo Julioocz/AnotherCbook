@@ -2,9 +2,11 @@ import json
 
 
 class ContactModel:
+
     def __init__(self, json_file):
         self.json_file = json_file
         self.contacts = self.get_contacts()
+        self.contacts_names = self.get_contacts_names()
 
     def _jsonLoad(self):
         with open(self.json_file) as json_data:
@@ -25,30 +27,27 @@ class ContactModel:
     def save_contacts(self):
         self._jsonDump({'persons': self.contacts})
 
+    def get_contacts_names(self):
+        contacts_names = []
+        for contact in self.contacts:
+            contacts_names.append(contact['name'])
+        return contacts_names
+
     def search_contact(self, name):
-        id_contact = 0
-        for x in self.contacts:
-            if x['name'] == name:
-                return x, id_contact
-            id_contact += 1
-        else:
-            return False
+        index_contact = self.contacts_names.index(name)
+        return self.contacts[index_contact]
 
     def verify_contact(self, name):
-        x = self.search_contact(name)
-        if x is not False:
-            return True
-        return x
+        return name in self.contacts_names
 
     def delete_contact(self, name):
-        id_contact = self.search_contact(name)[1]
-        self.contacts.pop(id_contact)
+        index_contact = self.contacts_names.index(name)
+        self.contacts.pop(index_contact)
         self.save_contacts()
 
     def update_contact(self, name, new_phone):
-        id_contact = self.search_contact(name)[1]
-
-        self.contacts[id_contact]['phone'] = new_phone
+        index_contact = self.contacts_names.index(name)
+        self.contacts[index_contact]['phone'] = new_phone
         self.save_contacts()
 
 
@@ -132,6 +131,9 @@ class ContactView:
     def input_info(self, message):
         return input(message)
 
+    def contact_not_found(self):
+        print('The contact that you are looking has not been found')
+
 
 class ContactController:
 
@@ -144,7 +146,7 @@ class ContactController:
 
     def start(self):
         options = [self.add, self.display, self.delete,
-                  self.update, self.search, self.exit]
+                   self.update, self.search, self.exit]
 
         while True:
             self.view.menu()
@@ -161,23 +163,19 @@ class ContactController:
         self.view.ask_contactInfo()
         new_name = self.view.input_info('Name: ')
         new_phone = self.view.input_info('Phone number: ')
-
-        try:
-            self.model.new_contact(new_name, new_phone)
-            self.view.contact_added()
-        except:
-            self.view.error()
+        self.model.new_contact(new_name, new_phone)
+        self.view.contact_added()
 
     def delete(self):
         self.view.ask_contactname()
         name_delete = self.view.input_info('Name: ')
 
-        try:
+        if self.model.verify_contact(name_delete):
             self.model.delete_contact(name_delete)
             self.view.contact_deleted(name_delete)
 
-        except:
-            self.view.error()
+        else:
+            self.view.contact_not_found
 
     def display(self):
         contacts = self.model.get_contacts()
@@ -192,18 +190,18 @@ class ContactController:
             new_phone = self.view.input_info('New phone: ')
             self.model.update_contact(contact_name, new_phone)
         else:
-            print('The contact is not in your contactbook')
+            self.view.contact_not_found
 
     def search(self):
         self.view.ask_contactname()
         contact_name = self.view.input_info('Name: ')
 
         if self.model.verify_contact(contact_name):
-            contact = self.model.search_contact(contact_name)[0]
+            contact = self.model.search_contact(contact_name)
             self.view.contactView(contact)
 
         else:
-            print('The contact is not in your contactbook')
+            self.view.contact_not_found
 
     def exit(self):
         return quit()
